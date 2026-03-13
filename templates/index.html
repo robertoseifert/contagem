@@ -7,7 +7,7 @@
 
 <title>Contador de Estoque</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest"></script>
 
 <style>
 
@@ -30,7 +30,6 @@ width:100%;
 max-width:600px;
 margin:auto;
 border-radius:10px;
-overflow:hidden;
 }
 
 .container{
@@ -72,92 +71,50 @@ background:#009624;
 📦 Contador de Estoque
 </header>
 
-<div id="camera"></div>
+<video id="camera"></video>
 
 <div class="container">
 
-<div>
-EAN
-</div>
+<div>EAN</div>
 
 <input id="ean" readonly>
 
-<div>
-Quantidade
-</div>
+<div>Quantidade</div>
 
 <input id="qtd" type="number" value="1">
 
-<button onclick="salvar()">
-Salvar
-</button>
+<button onclick="salvar()">Salvar</button>
 
 </div>
 
 <script>
 
-function iniciarCamera(deviceId){
+const codeReader = new ZXing.BrowserMultiFormatReader()
 
-Quagga.init({
+navigator.mediaDevices.enumerateDevices().then(devices => {
 
-inputStream:{
-name:"Live",
-type:"LiveStream",
-target:document.querySelector('#camera'),
-
-constraints:{
-deviceId:deviceId,
-width:{min:640},
-height:{min:480}
-}
-
-},
-
-locator:{
-patchSize:"large",
-halfSample:true
-},
-
-numOfWorkers:4,
-frequency:10,
-
-decoder:{
-readers:[
-"ean_reader",
-"ean_8_reader"
-]
-}
-
-},function(err){
-
-if(err){
-console.log(err)
-return
-}
-
-Quagga.start()
-
-})
-
-}
-
-navigator.mediaDevices.enumerateDevices().then(devices=>{
-
-let camera = devices.find(d => d.kind === "videoinput" && d.label.toLowerCase().includes("back"))
+let camera = devices.find(d =>
+d.kind === "videoinput" &&
+d.label.toLowerCase().includes("back")
+)
 
 if(!camera){
 camera = devices.find(d => d.kind === "videoinput")
 }
 
-iniciarCamera(camera.deviceId)
+codeReader.decodeFromVideoDevice(camera.deviceId, 'camera', (result, err) => {
 
-})
+if(result){
 
-Quagga.onDetected(function(data){
-
-let codigo = data.codeResult.code
+let codigo = result.text
 
 document.getElementById("ean").value = codigo
+
+navigator.vibrate(100)
+
+}
+
+})
 
 })
 
@@ -177,7 +134,7 @@ quantidade:qtd
 })
 })
 
-document.getElementById("qtd").value="1"
+document.getElementById("qtd").value = "1"
 
 alert("Salvo!")
 
@@ -186,4 +143,5 @@ alert("Salvo!")
 </script>
 
 </body>
+
 </html>
