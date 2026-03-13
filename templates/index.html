@@ -1,1 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Contador de Estoque</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+text-align:center;
+background:#f2f2f2;
+}
+
+#camera{
+width:100%;
+max-width:500px;
+margin:auto;
+}
+
+input{
+font-size:20px;
+padding:10px;
+margin:10px;
+width:150px;
+}
+
+button{
+font-size:20px;
+padding:10px 20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Contador de Estoque</h2>
+
+<div id="camera"></div>
+
+<h3>EAN</h3>
+<input id="ean" readonly>
+
+<h3>Quantidade</h3>
+<input id="qtd" type="number">
+
+<br>
+
+<button onclick="salvar()">Salvar</button>
+
+<script>
+
+Quagga.init({
+inputStream: {
+name: "Live",
+type: "LiveStream",
+target: document.querySelector('#camera'),
+constraints: {
+facingMode: "environment"
+}
+},
+decoder: {
+readers: [
+"ean_reader",
+"ean_8_reader",
+"code_128_reader"
+]
+}
+
+}, function(err) {
+
+if (err) {
+console.log(err);
+return
+}
+
+Quagga.start()
+
+})
+
+Quagga.onDetected(function(data){
+
+let codigo = data.codeResult.code
+document.getElementById("ean").value = codigo
+
+})
+
+function salvar(){
+
+let ean = document.getElementById("ean").value
+let qtd = document.getElementById("qtd").value
+
+fetch("/salvar",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+ean:ean,
+quantidade:qtd
+})
+})
+
+document.getElementById("qtd").value=""
+
+alert("Salvo!")
+
+}
+
+</script>
+
+</body>
+</html>
